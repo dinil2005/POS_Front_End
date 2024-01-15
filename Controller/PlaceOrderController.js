@@ -4,15 +4,6 @@ import {PlaceOrderModel} from "../Model/PlaceOrderModel.js";
 
 
 
-function clearItemSection() {
-    $("#item_description_select").val('select the item');
-    $("#qtyOnHand").val('');
-    $("#qty").val('');
-    $("#unit_price").val('');
-
-}
-
-
 
 // Define total in a broader scope
 // Initialize the total as a number
@@ -46,13 +37,9 @@ $("#cart_btn").on('click', () => {
 
 
 var cashInput = document.getElementById("cash");// Get the input element with the id "cash"
-
-
 cashInput.addEventListener("input", (event) => {// Add an input event listener to the input element
     let cash = parseFloat($("#cash").val()); // Parse the cash value as a float
-
     let balance = cash - total;
-
     // Update the content of the "balance" element
     $("#balance").val(balance);
 });
@@ -85,9 +72,12 @@ $("#place_order_btn").on('click', () => {
             http.onreadystatechange = () =>{
                 //Validation
                 if (http.readyState == 4 && http.status == 200) {
-                    alert("Sucess")
+                    alert("Success")
+                    allOrders_SetTable()
+                    orderIdGenerate();
+                    clear();
                 }else{
-                    alert("Faild")
+                    alert("Failed")
                 }
             }
             http.open("POST","http://localhost:8080/pos_back_end_war_exploded/order",true);
@@ -109,8 +99,22 @@ $("#place_order_btn").on('click', () => {
 
 });
 
+function allOrders_SetTable() {
+    fetch('http://localhost:8080/pos_back_end_war_exploded/order')
 
+        .then(response => response.json())
+        .then(data => {
+            console.log(data)
+            // Create rows for all orders and store them in a variable
+            const tableRows = data.map(orderDetails => {
+                return `<tr><th scope='row'>${orderDetails.order_Id}</th><td>${orderDetails.customer_Id}</td><td>${orderDetails.date}</td></tr>`;
+            });
 
+            // Set the table content once with all rows
+            $("#mange_order_table").html(tableRows.join(""));
+        })
+        .catch(error => console.error('Error fetching data:', error));
+}
 
 // Current Date Set
 
@@ -122,6 +126,43 @@ var day = currentDate.getDate();
 $("#order_Date").text(year + "-" + month + "-" + day + " ")
 
 
+function orderIdGenerate() {
+    fetch('http://localhost:8080/pos_back_end_war_exploded/order')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(order => {
+                // Extract the numeric part of the order ID
+                var nowIdNumber = parseInt(order.order_Id.slice(-3)); // Extract the last 3 digits
+
+                // Increment the numeric part
+                var newIdNumber = nowIdNumber + 1;
+
+                // Pad the new ID with leading zeros to maintain 3-digit format
+                var newId = newIdNumber.toString().padStart(3, '0');
+
+                // Update the order ID element
+                $("#orderId").text(newId);
+            });
+        })
+        .catch(error => console.error('Error fetching data:', error));
+}
+
+
+
+function clear(){
+    $("#customerOrder_Id").val('');
+
+    // Remove default values for Select Item section
+    $("#item_description_select").val('');
+    $("#qtyOnHand").val('');
+    $("#qty").val('');
+    $("#unit_price").val('');
+}
+function clear_fields() {
+    $('#customerOrder_Id').val("");
+    $('#cash').val('');
+    $("#balance").val("")
+}
 
 
 function validate(value, field_name){
@@ -135,21 +176,9 @@ function validate(value, field_name){
     return true;
 }
 
-function clear_fields() {
-    $('#customerOrder_Id').val("");
-    $('#cash').val('');
-    $("#balance").val("")
-}
-
-
-
-
-
 document.addEventListener('DOMContentLoaded', function() {
-
-
-
-
+orderIdGenerate();
+allOrders_SetTable()
 });
 
 

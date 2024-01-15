@@ -1,6 +1,11 @@
 import {CustomerModel} from "../Model/CustomerModel.js";
 
 
+document.addEventListener('DOMContentLoaded', function() {
+    customerDataGet();
+});
+
+
 // Save Customer
 $("#custSaveBtn").on('click', () => {
     var customerId = $("#customerId").val();
@@ -22,9 +27,11 @@ $("#custSaveBtn").on('click', () => {
             http.onreadystatechange = () =>{
                 //Validation
                 if (http.readyState == 4 && http.status == 200) {
-                    alert("Sucess")
+                    alert("Success")
+                    customerDataGet();
+                    textFieldsClear();
                 }else{
-                    alert("Faild")
+                    alert("Failed")
                 }
             }
             http.open("POST","http://localhost:8080/pos_back_end_war_exploded/customer",true);
@@ -34,6 +41,9 @@ $("#custSaveBtn").on('click', () => {
 
         sendAJAX(customer_Object_Json)
 
+
+
+        customerDataGet();
         Swal.fire(
             'Success!',
             'Customer Saved Successfully!',
@@ -68,9 +78,11 @@ $("#custUpdateBtn").on('click', ()=>{
             http.onreadystatechange = () =>{
                 //Validation
                 if (http.readyState == 4 && http.status == 200) {
-                    alert("Sucess")
+                    alert("Success")
+                    customerDataGet();
+                    textFieldsClear();
                 }else{
-                    alert("Faild")
+                    alert("Failed")
                 }
             }
             http.open("PUT","http://localhost:8080/pos_back_end_war_exploded/customer",true);
@@ -92,36 +104,40 @@ $("#custUpdateBtn").on('click', ()=>{
 $("#custdeleteBtn").on('click',()=>{
     let customerId = $("#customerId").val();
 
-    let customer_delet_id = {
-        customer_Id : customerId
-    }
-
-    let customer_delete_json = JSON.stringify(customer_delet_id);
-
-    const sendAJAX = (customerDeleteJson) => {
-        const http = new XMLHttpRequest();
-        http.onreadystatechange = () =>{
-            //Validation
-            if (http.readyState == 4 && http.status == 200) {
-                alert("Sucess")
-            }else{
-                alert("Faild")
-            }
+    if (validate(customerId,'Customer Id')) {
+        let customer_delete_id = {
+            customer_Id: customerId
         }
-        http.open("DELETE","http://localhost:8080/pos_back_end_war_exploded/customer",true);
-        http.setRequestHeader("Content-Type","application/json");
-        http.send(customerDeleteJson)
+
+        let customer_delete_json = JSON.stringify(customer_delete_id);
+
+        const sendAJAX = (customerDeleteJson) => {
+            const http = new XMLHttpRequest();
+            http.onreadystatechange = () => {
+                //Validation
+                if (http.readyState == 4 && http.status == 200) {
+                    alert("Success")
+                    customerDataGet();
+                    textFieldsClear();
+                } else {
+                    alert("Failed")
+                }
+            }
+            http.open("DELETE", "http://localhost:8080/pos_back_end_war_exploded/customer", true);
+            http.setRequestHeader("Content-Type", "application/json");
+            http.send(customerDeleteJson)
+        }
+        sendAJAX(customer_delete_json)
+
+        Swal.fire(
+            'Success!',
+            'Customer Delete Successfully!',
+            'success'
+        )
     }
-    sendAJAX(customer_delete_json)
-
-    Swal.fire(
-        'Success!',
-        'Customer Delete Successfully!',
-        'success'
-    )
-
 
 });
+
 
 
 //All Customer Data Get
@@ -129,25 +145,19 @@ function customerDataGet() {
     fetch('http://localhost:8080/pos_back_end_war_exploded/customer')
         .then(response => response.json())
         .then(data => {
-            // Call the function to load customer data into the table
-            LoadCustomerData(data);
+            $('#customer_Table').empty(); // Customer Table Clean
+
+            data.forEach(customer => {
+                var newRow = "<tr><th scope='row'>" + customer.customer_Id + "</th><td>" + customer.customer_Name + "</td><td>" + customer.customer_Mail + "</td><td>" + customer.customer_Address + "</td><td>" + customer.customer_Gender + "</td></tr>";
+                $("#customer_Table").append(newRow);
+            });
 
 
         })
         .catch(error => console.error('Error fetching data:', error));
 }
 
-// Get All Data Set Table
-const LoadCustomerData = (data) => {
-    $('#customer_Table').empty(); // Customer Table Clean
 
-    data.forEach(customer => {
-
-
-        var newRow = "<tr><th scope='row'>" + customer.customer_Id + "</th><td>" + customer.customer_Name + "</td><td>" + customer.customer_Mail + "</td><td>" + customer.customer_Address + "</td><td>" + customer.customer_Gender + "</td></tr>";
-        $("#customer_Table").append(newRow);
-    });
-}
 
 
 
@@ -155,7 +165,6 @@ const LoadCustomerData = (data) => {
 $("#customer_Table").on("click","tr", function (){
     let id = $(this).find("th");
     let data = $(this).find("td");
-
 
     $("#customerId").val(id.eq(0).text());
     $("#customer_name").val(data.eq(0).text());
@@ -177,14 +186,19 @@ function validate(value, field_name){
     return true;
 }
 
+function textFieldsClear(){
+    // Remove default values for input fields
+    $("#customerId").val('');
+    $("#customer_name").val('');
+    $("#customer_mail").val('');
+    $("#customer_Address").val('');
+    // Remove default value for the select option
+    $("#customer_Gender").val('');
+
+}
 
 
-document.addEventListener('DOMContentLoaded', function() {
-    customerDataGet();
-});
-
-
-
+// Button
 
 $("#customer_Table").on("click", "tr", function() {
     $('#custSaveBtn').css('display', 'none');
@@ -193,6 +207,11 @@ $("#customer_Table").on("click", "tr", function() {
 });
 
 $("#custdeleteBtn").on("click", function() {
+    $('#custSaveBtn').css('display', 'block');
+    $('#custdeleteBtn').css('display', 'none');
+    $('#custUpdateBtn').css('display', 'none');
+});
+$("#custUpdateBtn").on("click", function() {
     $('#custSaveBtn').css('display', 'block');
     $('#custdeleteBtn').css('display', 'none');
     $('#custUpdateBtn').css('display', 'none');

@@ -1,5 +1,11 @@
 import {ItemModel} from "../Model/ItemModel.js";
 
+
+document.addEventListener('DOMContentLoaded', function() {
+    getAllItems();
+});
+
+
 //Save Item
 $("#item_save_btn").on('click', ()=>{
     var item_Id = $("#item_id_txt").val();
@@ -19,9 +25,11 @@ $("#item_save_btn").on('click', ()=>{
             http.onreadystatechange = () =>{
                 //Validation
                 if (http.readyState == 4 && http.status == 200) {
-                    alert("Sucess")
+                    alert("Success")
+                    clearTextFields();
+                    getAllItems();
                 }else{
-                    alert("Faild")
+                    alert("Failed")
                 }
             }
             http.open("POST","http://localhost:8080/pos_back_end_war_exploded/item",true);
@@ -43,7 +51,7 @@ $("#item_save_btn").on('click', ()=>{
 
 
 
-//Save Item
+//Update Item
 $("#item_update_btn").on('click', ()=>{
     var item_Id = $("#item_id_txt").val();
     var item_Name = $("#item_name_txt").val().trim();
@@ -62,9 +70,11 @@ $("#item_update_btn").on('click', ()=>{
             http.onreadystatechange = () =>{
                 //Validation
                 if (http.readyState == 4 && http.status == 200) {
-                    alert("Sucess")
+                    alert("Success")
+                    clearTextFields();
+                    getAllItems();
                 }else{
-                    alert("Faild")
+                    alert("Failed")
                 }
             }
             http.open("PUT","http://localhost:8080/pos_back_end_war_exploded/item",true);
@@ -85,7 +95,7 @@ $("#item_update_btn").on('click', ()=>{
 });
 
 
-//Save Item
+//Delete Item
 $("#item_delete_btn").on('click', ()=>{
     var item_Id = $("#item_id_txt").val();
 
@@ -100,9 +110,11 @@ $("#item_delete_btn").on('click', ()=>{
             http.onreadystatechange = () =>{
                 //Validation
                 if (http.readyState == 4 && http.status == 200) {
-                    alert("Sucess")
+                    alert("Success")
+                    clearTextFields();
+                    getAllItems();
                 }else{
-                    alert("Faild")
+                    alert("Failed")
                 }
             }
             http.open("DELETE","http://localhost:8080/pos_back_end_war_exploded/item",true);
@@ -122,10 +134,55 @@ $("#item_delete_btn").on('click', ()=>{
     }
 });
 
+
+
+//Get All Items
+function getAllItems(){
+    fetch('http://localhost:8080/pos_back_end_war_exploded/item')
+        .then(response => response.json())
+        .then(data => {
+            $('#item_table').empty(); // Customer Table Clean
+
+            data.forEach(item => {
+
+                var newRow = "<tr><th scope='row'>" + item.item_Id + "</th><td>" + item.item_Name+ "</td><td>" + item.item_Price + "</td><td>" + item.item_Qty + "</td></tr>";
+                $("#item_table").append(newRow);
+            });
+        })
+        .catch(error => console.error('Error fetching data:', error));
+}
+
+
+
+function validate(value, field_name){
+    if (!value){
+        Swal.fire({
+            icon: 'warning',
+            title: `Please enter the ${field_name}!`
+        });
+        return false;
+    }
+    return true;
+}
+
+
+
 $("#item_table").on("click", "tr", function() {
     $('#item_save_btn').css('display', 'none');
     $('#item_delete_btn').css('display','block');
     $('#item_update_btn').css('display','block');
+});
+
+$("#item_delete_btn").on("click" , function (){
+    $('#item_save_btn').css('display', 'block');
+    $('#item_delete_btn').css('display','none');
+    $('#item_update_btn').css('display','none');
+});
+
+$("#item_update_btn").on("click" , function (){
+    $('#item_save_btn').css('display', 'block');
+    $('#item_delete_btn').css('display','none');
+    $('#item_update_btn').css('display','none');
 });
 
 
@@ -141,47 +198,9 @@ $("#item_table").on("click","tr",function (){
 })
 
 
-
-
-//Get All Items
-function getAllItems(){
-    fetch('http://localhost:8080/pos_back_end_war_exploded/item')
-        .then(response => response.json())
-        .then(data => {
-            // Call the function to load customer data into the table
-            LoadItemData(data);
-        })
-        .catch(error => console.error('Error fetching data:', error));
-}
-
-// Get All Data Set Table
-const LoadItemData = (data) => {
-    $('#item_table').empty(); // Customer Table Clean
-
-    data.forEach(item => {
-
-        var newRow = "<tr><th scope='row'>" + item.item_Id + "</th><td>" + item.item_Name+ "</td><td>" + item.item_Price + "</td><td>" + item.item_Qty + "</td></tr>";
-        $("#item_table").append(newRow);
-    });
-}
-
-
-document.addEventListener('DOMContentLoaded', function() {
-    getAllItems();
-});
-
-
-
-
-
-
-function validate(value, field_name){
-    if (!value){
-        Swal.fire({
-            icon: 'warning',
-            title: `Please enter the ${field_name}!`
-        });
-        return false;
-    }
-    return true;
+function clearTextFields(){
+    $("#item_id_txt").val('');
+    $("#item_name_txt").val('');
+    $("#item_price_txt").val('');
+    $("#item_qty_txt").val('');
 }

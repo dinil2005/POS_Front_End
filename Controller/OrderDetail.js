@@ -1,6 +1,51 @@
-
-//All Customer Data Get
 import {PlaceOrderModel} from "../Model/PlaceOrderModel.js";
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    customerDataGet();
+    getAllItems();
+    allOrders_SetTable()
+
+});
+
+
+//Order Details Delete
+
+$("#oderMangeDeleteBtn").on('click', () => {
+    let orderId = $("#order_id").val();
+
+    let delete_order_id_Obj = new PlaceOrderModel("", orderId);
+
+    let deleteOrderIdJson = JSON.stringify(delete_order_id_Obj);
+
+    const sendAJAX = (deleteItem) => {
+        const http = new XMLHttpRequest();
+        http.onreadystatechange = () =>{
+            //Validation
+            if (http.readyState == 4 && http.status == 200) {
+                alert("Success")
+                allOrders_SetTable();
+            }else{
+                alert("Failed")
+            }
+        }
+        http.open("DELETE","http://localhost:8080/pos_back_end_war_exploded/order",true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.send(deleteItem)
+    }
+
+    sendAJAX(deleteOrderIdJson)
+
+    Swal.fire(
+        'Success!',
+        'Order Details Delete Successfully!',
+        'success'
+    )
+    $('#mange_order_table').empty();
+
+});
+
 
 function customerDataGet() {
     fetch('http://localhost:8080/pos_back_end_war_exploded/customer')
@@ -81,25 +126,24 @@ $("#item_description_select").change(function () {
 
 
 
-/// Order Details Manage
 
-
-
-
-function allOrdersSetTable(){
+function allOrders_SetTable() {
     fetch('http://localhost:8080/pos_back_end_war_exploded/order')
         .then(response => response.json())
         .then(data => {
-
-            data.forEach(orderDetails => {
-                    $('#mange_order_table').empty();// Customer Table Clean
-                        var newRow = "<tr><th scope='row'>" + orderDetails.order_Id + "</th><td>" + orderDetails.customer_Id + "</td><td>" + orderDetails.date+ "</td></tr>";
-                        $("#mange_order_table").append(newRow)
+            // Create rows for all orders and store them in a variable
+            const tableRows = data.map(orderDetails => {
+                return `<tr><th scope='row'>${orderDetails.order_Id}</th><td>${orderDetails.customer_Id}</td><td>${orderDetails.date}</td></tr>`;
             });
 
+            // Set the table content once with all rows
+            $("#mange_order_table").html(tableRows.join(""));
         })
         .catch(error => console.error('Error fetching data:', error));
 }
+
+
+
 
 
 $("#mange_order_table").on("click", "tr", function () {
@@ -112,49 +156,4 @@ $("#mange_order_table").on("click", "tr", function () {
 });
 
 
-//Order Details Delete
 
-$("#oderMangeDeleteBtn").on('click', () => {
-    let orderId = $("#order_id").val();
-
-    let delete_order_id_Obj = new PlaceOrderModel("", orderId);
-
-    let deleteOrderIdJson = JSON.stringify(delete_order_id_Obj);
-
-    const sendAJAX = (deleteItem) => {
-        const http = new XMLHttpRequest();
-        http.onreadystatechange = () =>{
-            //Validation
-            if (http.readyState == 4 && http.status == 200) {
-                alert("Sucess")
-            }else{
-                alert("Faild")
-            }
-        }
-        http.open("DELETE","http://localhost:8080/pos_back_end_war_exploded/order",true);
-        http.setRequestHeader("Content-Type","application/json");
-        http.send(deleteItem)
-    }
-
-    sendAJAX(deleteOrderIdJson)
-
-    Swal.fire(
-        'Success!',
-        'Order Details Delete Successfully!',
-        'success'
-    )
-    $('#mange_order_table').empty();
-
-});
-
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
-    customerDataGet();
-    getAllItems();
-    allOrdersSetTable();
-
-});
